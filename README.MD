@@ -39,3 +39,7 @@ The application includes a seeding script (seed.py) that populates the database 
 The project uses Flask-SQLAlchemy for database operations
 Flask-Marshmallow is used for object serialization/deserialization
 The database schema is defined in the model files under the models directory
+
+
+## Running the app
+To run the app, use python3 app.py then onto the url at the top add the route to the data to be displayed. eg.  http://127.0.0.1:5000/episodes
