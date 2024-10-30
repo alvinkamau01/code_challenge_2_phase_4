@@ -2,8 +2,15 @@ from flask import Flask, jsonify, request, abort
 from flask_migrate import Migrate
 from models import Appearance, Episode, Guest
 from models import appearance_schema, appearances_schema, episode_schema, episodes_schema, guest_schema, guests_schema
-from dbimport import db, ma, app
+from dbimport import db, ma, init_app
 
+# Create Flask app
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///show.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize extensions
+init_app(app)
 migrate = Migrate(app, db)
 
 @app.route('/episodes', methods=['GET'])

@@ -1,11 +1,10 @@
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from flask import Flask
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///show.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy()
+ma = Marshmallow()
 
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
-
+def init_app(app):
+    db.init_app(app)
+    ma.init_app(app)
