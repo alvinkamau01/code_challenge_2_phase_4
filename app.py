@@ -1,27 +1,36 @@
-from flask import Flask, jsonify, request, abort
+# app.py
+from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS
 from flask_migrate import Migrate
-from models import Appearance, Episode, Guest
-from models import appearance_schema, appearances_schema, episode_schema, episodes_schema, guest_schema, guests_schema
-from dbimport import db, ma, init_app
+from dbimport import db, ma
+from models.appearance import Appearance, appearance_schema, appearances_schema
+from models.episode import Episode,episode_schema,episodes_schema
+from models.guest import Guest,guests_schema,guest_schema
+from seed import seed_episodes, seed_guests, seed_appearances
+import os
 
 # Create Flask app
-app = Flask(__name__)
+app = Flask(__name__ ,template_folder='templates')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///show.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
-init_app(app)
+db.init_app(app)
 migrate = Migrate(app, db)
+CORS(app)
+print("Template folder path:", os.path.abspath(os.path.join(app.root_path, 'templates')))
 
 @app.route('/episodes', methods=['GET'])
 def get_episodes():
+    """Retrieve all episodes."""
     episodes = Episode.query.all()
     results = episodes_schema.dump(episodes)
     return jsonify(results)
 
-@app.route('/episodes/<int:id>', methods=['GET'])
-def get_episode(id):
-    episode = Episode.query.get(id)
+@app.route('/episodes/<int:episode_id>', methods=['GET'])
+def get_episode(episode_id):
+    """Retrieve a specific episode by ID."""
+    episode = Episode.query.get(episode_id)
     if not episode:
         return jsonify({'error': 'Episode not found'}), 404
     result = episode_schema.dump(episode)
@@ -29,12 +38,18 @@ def get_episode(id):
 
 @app.route('/guests', methods=['GET'])
 def get_guests():
+    """Retrieve all guests."""
     guests = Guest.query.all()
     results = guests_schema.dump(guests)
     return jsonify(results)
 
+@app.route('/add_appearance')
+def add_appearance_form():
+    return render_template('add_appearance.html')
+
 @app.route('/appearances', methods=['POST'])
 def add_appearance():
+    """Add a new appearance."""
     data = request.json
     episode_id = data.get('episode_id')
     guest_id = data.get('guest_id')
@@ -55,14 +70,14 @@ def add_appearance():
 
     return appearance_schema.jsonify(new_appearance), 201
 
-from seed import seed_episodes, seed_guests, seed_appearances
-
 def create_tables():
-    db.create_all()
+    """Create database tables."""
+    with app.app_context():
+        db.create_all()
 
 if __name__ == '__main__':
+    create_tables()
     with app.app_context():
-        create_tables()
         seed_episodes()
         seed_guests()
         seed_appearances()
